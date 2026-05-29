@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Книги · Панель · Librarium</title>
+    <link rel="icon" type="image/png" href="/assets/icons/logo_mini.png"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/assets/css/app.css"/>
+</head>
+<body class="page-body">
+<div th:replace="~{fragments :: topbar(${currentUser})}"></div>
+
+<main class="page-shell page-shell--admin admin-page" data-catalog-shell data-catalog-base="/panel/books">
+    <div class="admin-shell">
+        <div th:replace="~{fragments :: adminSidebar(${adminSection})}"></div>
+
+        <section class="admin-content">
+            <header class="catalog-header admin-content__header">
+                <div class="catalog-header__copy">
+                    <h1 class="catalog-title">Все книги</h1>
+                                    </div>
+                <div class="catalog-counter panel" data-catalog-counter aria-label="Количество книг">
+                    <div class="catalog-counter__value" th:text="${booksCount}">0</div>
+                </div>
+            </header>
+
+            <div class="app-toast-marker" th:if="${success}" data-toast-message th:text="${success}">Saved</div>
+
+            <form class="catalog-controls admin-books-controls" method="get" action="/panel/books" data-catalog-form>
+                <div class="catalog-search-field">
+                    <label class="catalog-label" for="admin-books-search">Поиск</label>
+                    <input id="admin-books-search"
+                           class="form-control catalog-search-input"
+                           th:value="${query}"
+                           placeholder="Название или автор"
+                           autocomplete="off"
+                           autocorrect="off"
+                           autocapitalize="none"
+                           spellcheck="false"
+                           data-catalog-search/>
+                </div>
+
+                <div class="catalog-sort-field">
+                    <label class="catalog-label">Сортировка</label>
+                    <input type="hidden" name="sort" th:value="${sort}" data-catalog-sort-value/>
+                    <button class="catalog-sort-trigger" type="button" data-catalog-sort-trigger>
+                        <span class="catalog-sort-trigger__label" data-catalog-sort-label th:text="${sort == 'rating' ? 'Лучшее' : (sort == 'author' ? 'По автору' : (sort == 'title' ? 'По названию' : 'Новое'))}">Новое</span>
+                        <span class="catalog-sort-trigger__chevron" aria-hidden="true">▾</span>
+                    </button>
+                </div>
+            </form>
+
+            <section class="panel admin-section-panel">
+                <div class="admin-books-grid" data-catalog-grid>
+                    <div class="catalog-empty panel" th:if="${#lists.isEmpty(books)}">
+                        <div class="catalog-empty__title">Ничего не найдено</div>
+                        <div class="text-soft">Попробуйте изменить запрос или сортировку.</div>
+                    </div>
+
+                    <article class="admin-book-card" th:each="book : ${books}">
+                        <div class="admin-book-card__section admin-book-card__section--main">
+                            <div class="admin-book-card__title clamp-2" th:text="${book.title}">Title</div>
+                            <div class="admin-book-card__author clamp-1" th:text="${book.author}">Author</div>
+                            <div class="admin-book-card__year" th:text="${book.publicationYear != null ? book.publicationYear : '—'}">2024</div>
+                        </div>
+
+                        <div class="admin-book-card__section admin-book-card__section--rating">
+                            <div class="rating-inline rating-inline--sm admin-book-card__rating" th:with="rating=${book.averageRating}">
+                                <span class="rating-inline__value" th:text="${@uiFormat.averageRatingLabel(rating)}">0.0</span>
+                                <span class="rating-stars" aria-hidden="true">
+                                    <th:block th:each="starIndex : ${#numbers.sequence(1,5)}">
+                                        <span class="rating-stars__star"
+                                              th:style="|--star-fill:${@uiFormat.starFillPercent(rating, starIndex)}%|">
+                                            <span class="rating-stars__base">★</span>
+                                            <span class="rating-stars__fill">★</span>
+                                        </span>
+                                    </th:block>
+                                </span>
+                            </div>
+                            <div class="admin-book-card__reviews" th:text="${@uiFormat.reviewCount(book.reviewCount)}">0 отзывов</div>
+                        </div>
+
+                        <div class="admin-book-card__section admin-book-card__section--actions">
+                            <div class="admin-book-card__actions">
+                                <a class="admin-icon-btn" th:href="@{/books/{id}(id=${book.id})}" aria-label="Открыть книгу" title="Открыть книгу">
+                                    <img src="/assets/icons/open.png" alt="" aria-hidden="true"/>
+                                </a>
+                                <a class="admin-icon-btn" th:href="@{/panel/books/{id}/edit(id=${book.id})}" aria-label="Редактировать книгу" title="Редактировать книгу">
+                                    <img src="/assets/icons/edit.png" alt="" aria-hidden="true"/>
+                                </a>
+                                <form th:action="@{/panel/books/{id}/delete(id=${book.id})}" method="post">
+                                    <button class="admin-icon-btn admin-icon-btn--danger" type="submit" aria-label="Удалить книгу" title="Удалить книгу">
+                                        <img src="/assets/icons/delete.png" alt="" aria-hidden="true"/>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </section>
+
+            <div class="catalog-sort-modal" hidden data-catalog-sort-modal>
+                <div class="catalog-sort-modal__backdrop" data-catalog-sort-close></div>
+                <section class="catalog-sort-sheet" role="dialog" aria-modal="true" aria-labelledby="catalog-sort-title">
+                    <div class="catalog-sort-sheet__header">
+                        <h2 class="catalog-sort-sheet__title" id="catalog-sort-title">Выберите фильтр</h2>
+                        <button class="catalog-sort-sheet__close" type="button" aria-label="Закрыть" data-catalog-sort-close>✕</button>
+                    </div>
+                    <div class="catalog-sort-grid">
+                        <button class="catalog-sort-option" type="button" data-catalog-sort-option="newest"><span>Новое</span></button>
+                        <button class="catalog-sort-option" type="button" data-catalog-sort-option="rating"><span>Лучшее</span></button>
+                        <button class="catalog-sort-option" type="button" data-catalog-sort-option="author"><span>По автору</span></button>
+                        <button class="catalog-sort-option" type="button" data-catalog-sort-option="title"><span>По названию</span></button>
+                    </div>
+                </section>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module" src="/assets/js/cursor.js"></script>
+<script type="module" src="/assets/js/auth.js"></script>
+</body>
+</html>

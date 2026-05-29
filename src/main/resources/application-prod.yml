@@ -1,0 +1,16 @@
+spring:
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/librarium}
+    username: ${DATABASE_USERNAME:librarium}
+    password: ${DATABASE_PASSWORD:librarium}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+librarium:
+  firebase:
+    project-id: ${LIBRARIUM_FIREBASE_PROJECT_ID:librarium-dd543}
+  admin-emails:
+    - ${LIBRARIUM_ADMIN_EMAIL:admin@librarium.ru}

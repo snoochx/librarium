@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Заявки · Панель · Librarium</title>
+    <link rel="icon" type="image/png" href="/assets/icons/logo_mini.png"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/assets/css/app.css"/>
+</head>
+<body class="page-body">
+<div th:replace="~{fragments :: topbar(${currentUser})}"></div>
+
+<main class="page-shell page-shell--admin admin-page">
+    <div class="admin-shell">
+        <div th:replace="~{fragments :: adminSidebar(${adminSection})}"></div>
+
+        <section class="admin-content">
+            <header class="catalog-header admin-content__header">
+                <div class="catalog-header__copy">
+                    <h1 class="catalog-title">Заявки</h1>
+                                    </div>
+                <div class="catalog-counter panel">
+                    <div class="catalog-counter__value" th:text="${requestsCount}">0</div>
+                </div>
+            </header>
+
+            <div class="app-toast-marker" th:if="${success}" data-toast-message th:text="${success}">Saved</div>
+
+            <section class="panel admin-section-panel">
+                <div class="admin-section-panel__head">
+                    <div>
+                        <h2 class="section-title">Новые заявки</h2>
+                                            </div>
+                </div>
+
+                <div class="admin-requests-grid" th:if="${requests != null and !#lists.isEmpty(requests)}">
+                    <article class="admin-request-card" th:each="suggestion : ${requests}">
+                        <div class="admin-request-card__section admin-request-card__section--main">
+                            <div class="admin-request-card__badge">Заявка #<span th:text="${suggestion.id}">1</span></div>
+                            <div class="admin-request-card__title clamp-2" th:text="${suggestion.title}">Title</div>
+                            <div class="admin-request-card__author clamp-1" th:text="${suggestion.author}">Author</div>
+                            <div class="admin-request-card__year" th:text="${suggestion.publicationYear != null ? suggestion.publicationYear : '—'}">2024</div>
+                        </div>
+
+                        <div class="admin-request-card__section admin-request-card__section--actions">
+                            <div class="admin-request-card__actions">
+                                <form th:action="@{/panel/suggestions/{id}/approve(id=${suggestion.id})}" method="post">
+                                    <button class="btn btn-primary btn-sm admin-card-btn" type="submit">Принять</button>
+                                </form>
+                                <form th:action="@{/panel/suggestions/{id}/reject(id=${suggestion.id})}" method="post">
+                                    <button class="btn btn-outline-light btn-sm admin-card-btn" type="submit">Отклонить</button>
+                                </form>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+
+                <div th:unless="${requests != null and !#lists.isEmpty(requests)}" class="empty-state empty-state--tight">
+                    <img src="/assets/icons/noreqests.png" class="empty-state__image empty-state__image--compact empty-state__image--float" alt="" aria-hidden="true"/>
+                    <div class="empty-state__caption">Сейчас нет новых заявок</div>
+                </div>
+            </section>
+        </section>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module" src="/assets/js/cursor.js"></script>
+<script type="module" src="/assets/js/auth.js"></script>
+</body>
+</html>

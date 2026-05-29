@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Каталог · Librarium</title>
+    <link rel="icon" type="image/png" href="/assets/icons/logo_mini.png"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/assets/css/app.css"/>
+</head>
+<body class="page-body">
+<div th:replace="~{fragments :: topbar(${currentUser})}"></div>
+
+<main class="page-shell page-shell--catalog catalog-page" data-catalog-shell>
+    <header class="catalog-header">
+        <div class="catalog-header__copy">
+            <h1 class="catalog-title">Каталог книг</h1>
+        </div>
+        <div class="catalog-counter panel" data-catalog-counter aria-label="Количество книг">
+            <div class="catalog-counter__value" th:text="${books.totalElements}">0</div>
+        </div>
+    </header>
+
+    <form class="catalog-controls" method="get" action="/catalog" data-catalog-form>
+        <div class="catalog-search-field">
+            <label class="catalog-label" for="catalog-search">Поиск</label>
+            <input id="catalog-search"
+                   class="form-control catalog-search-input"
+                   th:value="${query}"
+                   placeholder="Название, автор, жанр, описание"
+                   autocomplete="off"
+                   autocorrect="off"
+                   autocapitalize="none"
+                   spellcheck="false"
+                   data-catalog-search/>
+        </div>
+
+        <div class="catalog-sort-field">
+            <label class="catalog-label">Сортировка</label>
+            <input type="hidden" name="sort" th:value="${sort}" data-catalog-sort-value/>
+            <button class="catalog-sort-trigger" type="button" data-catalog-sort-trigger>
+                <span class="catalog-sort-trigger__label" data-catalog-sort-label th:text="${sort == 'rating' ? 'Лучшее' : (sort == 'author' ? 'По автору' : (sort == 'title' ? 'По названию' : 'Новое'))}">Новое</span>
+                <span class="catalog-sort-trigger__chevron" aria-hidden="true">▾</span>
+            </button>
+        </div>
+    </form>
+
+    <section class="catalog-results">
+        <div class="catalog-grid" data-catalog-grid>
+            <div class="catalog-empty panel" th:if="${#lists.isEmpty(books.content)}">
+                <div class="catalog-empty__title">Ничего не найдено</div>
+                <div class="text-soft">Попробуйте изменить запрос или сортировку.</div>
+            </div>
+
+            <div class="catalog-grid__items" th:unless="${#lists.isEmpty(books.content)}">
+                <a class="book-card catalog-card" th:each="book : ${books.content}" th:href="@{/books/{id}(id=${book.id})}">
+                    <div class="book-plate catalog-card__plate">
+                        <img th:src="${book.backgroundPath}" class="book-plate-bg catalog-card__background" alt="background"/>
+                        <div class="book-plate-overlay catalog-card__overlay"></div>
+
+                        <div class="catalog-card__status" th:if="${bookStatusById != null and bookStatusById.containsKey(book.id)}"
+                             th:text="${@uiFormat.bookStatusLabel(bookStatusById[book.id])}">Прочитано</div>
+
+                        <img th:src="${book.badgeIconPath}" class="book-plate-icon catalog-card__icon" th:alt="${book.badgeLabel}"/>
+
+                        <div class="book-plate-content catalog-card__content">
+                            <div class="catalog-card__title-block">
+                                <h2 class="catalog-card__title clamp-2" th:text="${book.title}">Title</h2>
+                                <div class="book-author catalog-card__author" th:text="${book.author}">Author</div>
+                                <span class="rating-inline rating-inline--sm catalog-card__rating"
+                                      th:with="rating=${book.averageRating}">
+                                    <span class="rating-inline__value" th:text="${@uiFormat.averageRatingLabel(rating)}">0.0</span>
+                                    <span class="rating-stars" aria-hidden="true">
+                                        <th:block th:each="starIndex : ${#numbers.sequence(1,5)}">
+                                            <span class="rating-stars__star"
+                                                  th:style="|--star-fill:${@uiFormat.starFillPercent(rating, starIndex)}%|">
+                                                <span class="rating-stars__base">★</span>
+                                                <span class="rating-stars__fill">★</span>
+                                            </span>
+                                        </th:block>
+                                    </span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="catalog-pagination" data-catalog-pagination>
+            <div class="catalog-pagination__side">
+                <a class="btn btn-outline-light" th:if="${books.hasPrevious()}" th:href="@{/catalog(q=${query}, sort=${sort}, page=${books.number - 1})}">← Назад</a>
+            </div>
+            <div class="catalog-pagination__center text-soft" th:if="${books.totalPages > 0}">
+                Страница <span th:text="${books.number + 1}">1</span> / <span th:text="${books.totalPages}">1</span>
+            </div>
+            <div class="catalog-pagination__side catalog-pagination__side--end">
+                <a class="btn btn-outline-light" th:if="${books.hasNext()}" th:href="@{/catalog(q=${query}, sort=${sort}, page=${books.number + 1})}">Вперёд →</a>
+            </div>
+        </div>
+    </section>
+
+    <div class="catalog-sort-modal" hidden data-catalog-sort-modal>
+        <div class="catalog-sort-modal__backdrop" data-catalog-sort-close></div>
+        <section class="catalog-sort-sheet" role="dialog" aria-modal="true" aria-labelledby="catalog-sort-title">
+            <div class="catalog-sort-sheet__header">
+                <h2 class="catalog-sort-sheet__title" id="catalog-sort-title">Выберите фильтр</h2>
+                <button class="catalog-sort-sheet__close" type="button" aria-label="Закрыть" data-catalog-sort-close>✕</button>
+            </div>
+            <div class="catalog-sort-grid">
+                <button class="catalog-sort-option" type="button" data-catalog-sort-option="newest"><span>Новое</span></button>
+                <button class="catalog-sort-option" type="button" data-catalog-sort-option="rating"><span>Лучшее</span></button>
+                <button class="catalog-sort-option" type="button" data-catalog-sort-option="author"><span>По автору</span></button>
+                <button class="catalog-sort-option" type="button" data-catalog-sort-option="title"><span>По названию</span></button>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module" src="/assets/js/cursor.js"></script>
+<script type="module" src="/assets/js/auth.js"></script>
+</body>
+</html>

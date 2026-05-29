@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<header th:fragment="topbar(currentUser)" class="site-header">
+    <nav class="site-nav navbar navbar-expand-lg navbar-dark">
+        <div class="site-nav__inner">
+            <a class="site-brand" href="/" aria-label="Librarium">
+                <img src="/assets/icons/logo.png" alt="Librarium" class="site-brand__logo"/>
+            </a>
+
+            <button class="navbar-toggler site-nav__toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-label="Открыть меню">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse site-nav__collapse" id="navMenu">
+                <div class="site-nav__actions">
+                    <a th:if="${currentUser != null and currentUser.admin}" class="site-nav__link site-nav__link--admin" href="/panel">
+                        <span class="site-nav__link-icon" aria-hidden="true">✦</span>
+                        <span>Панель</span>
+                    </a>
+                    <a class="site-nav__link" href="/catalog">Каталог</a>
+                    <a th:if="${currentUser != null}" class="site-nav__user" href="/profile" th:text="${currentUser.displayName()}">Профиль</a>
+                    <a th:if="${currentUser == null}" class="site-nav__button btn btn-soft" href="/login">Войти</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+</header>
+
+<aside th:fragment="adminSidebar(activeSection)" class="admin-sidebar">
+    <div class="admin-sidebar__brand">
+        <div class="admin-sidebar__title">Панель</div>
+    </div>
+
+    <nav class="admin-sidebar__nav" aria-label="Навигация по панели">
+        <a class="admin-sidebar__link"
+           th:classappend="${activeSection == 'requests'} ? ' is-active' : ''"
+           href="/panel/requests">
+            <img class="admin-sidebar__link-icon" src="/assets/icons/requests.png" alt="" aria-hidden="true"/>
+            <span>Заявки</span>
+        </a>
+        <a class="admin-sidebar__link"
+           th:classappend="${activeSection == 'books'} ? ' is-active' : ''"
+           href="/panel/books">
+            <img class="admin-sidebar__link-icon" src="/assets/icons/books.png" alt="" aria-hidden="true"/>
+            <span>Все книги</span>
+        </a>
+        <a class="admin-sidebar__link"
+           th:classappend="${activeSection == 'create'} ? ' is-active' : ''"
+           href="/panel/book/new">
+            <img class="admin-sidebar__link-icon" src="/assets/icons/add.png" alt="" aria-hidden="true"/>
+            <span>Добавить книгу</span>
+        </a>
+    </nav>
+
+    <div class="admin-sidebar__footer">
+        <a class="btn btn-outline-light w-100" href="/catalog">К каталогу</a>
+    </div>
+</aside>
+</body>
+</html>

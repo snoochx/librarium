@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Админка · Librarium</title>
+    <link rel="icon" type="image/png" href="/assets/icons/logo_mini.png"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/assets/css/app.css"/>
+</head>
+<body class="page-body">
+<div th:replace="~{fragments :: topbar(${currentUser})}"></div>
+
+<main class="page-shell page-shell--admin admin-page">
+    <h1 class="page-title">Панель администратора</h1>
+
+    <section class="panel admin-panel">
+        <h2 class="section-title" th:text="${editingBook != null ? 'Редактирование книги' : 'Добавить книгу'}">Добавить книгу</h2>
+        <form th:action="${editingBook != null ? '/panel/books/' + editingBook.id : '/panel/books'}" method="post" th:object="${bookForm}" class="form-grid form-grid--admin">
+            <div class="form-grid__cell"><input class="form-control" th:field="*{title}" placeholder="Название"/></div>
+            <div class="form-grid__cell"><input class="form-control" th:field="*{author}" placeholder="Автор"/></div>
+            <div class="form-grid__cell form-grid__cell--full"><textarea class="form-control" rows="4" th:field="*{description}" placeholder="Описание"></textarea></div>
+            <div class="form-grid__cell"><input class="form-control" th:field="*{genre}" placeholder="Жанр"/></div>
+            <div class="form-grid__cell"><input class="form-control" th:field="*{publicationYear}" placeholder="Год"/></div>
+            <div class="form-grid__cell"><select class="form-select" th:field="*{featured}"><option value="true">Рекомендовать</option><option value="false">Обычная</option></select></div>
+            <div class="form-grid__cell"><select class="form-select" th:field="*{visible}"><option value="true">Виден</option><option value="false">Скрыт</option></select></div>
+            <div class="form-grid__cell form-grid__cell--full action-row">
+                <button class="btn btn-primary" th:text="${editingBook != null ? 'Сохранить' : 'Добавить'}">Сохранить</button>
+                <a th:if="${editingBook != null}" href="/panel" class="btn btn-outline-light">Отмена</a>
+            </div>
+        </form>
+    </section>
+
+    <div class="admin-layout">
+        <section class="panel">
+            <h2 class="section-title">Книги</h2>
+            <div class="admin-list-item" th:each="book : ${books.content}">
+                <div>
+                    <div class="item-title" th:text="${book.title}">Title</div>
+                    <div class="item-subtitle" th:text="${book.author}">Author</div>
+                </div>
+                <div class="action-row action-row--compact">
+                    <a class="btn btn-mini btn-outline-light" th:href="@{/panel(editId=${book.id})}">Редактировать</a>
+                    <form th:action="@{/panel/books/{id}/delete(id=${book.id})}" method="post">
+                        <button class="btn btn-mini btn-outline-danger">Удалить</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+
+        <section class="panel">
+            <h2 class="section-title">Предложения пользователей</h2>
+            <div class="admin-suggestion" th:each="suggestion : ${suggestions}">
+                <div class="item-title" th:text="${suggestion.title}">Title</div>
+                <div class="item-subtitle" th:text="${suggestion.author}">Author</div>
+                <p class="item-note" th:text="${suggestion.description}">Description</p>
+                <div class="action-row action-row--compact">
+                    <form th:action="@{/panel/suggestions/{id}/approve(id=${suggestion.id})}" method="post">
+                        <button class="btn btn-mini btn-primary">Одобрить</button>
+                    </form>
+                    <form th:action="@{/panel/suggestions/{id}/reject(id=${suggestion.id})}" method="post">
+                        <input type="hidden" name="comment" value="Отклонено администратором"/>
+                        <button class="btn btn-mini btn-outline-light">Отклонить</button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module" src="/assets/js/cursor.js"></script>
+<script type="module" src="/assets/js/auth.js"></script>
+</body>
+</html>

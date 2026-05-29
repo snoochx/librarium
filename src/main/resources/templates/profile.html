@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Профиль · Librarium</title>
+    <link rel="icon" type="image/png" href="/assets/icons/logo_mini.png"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link rel="stylesheet" href="/assets/css/app.css"/>
+</head>
+<body class="page-body">
+<div th:replace="~{fragments :: topbar(${currentUser})}"></div>
+
+<main class="page-shell page-shell--profile profile-page">
+    <header class="catalog-header profile-page__header">
+        <div class="catalog-header__copy">
+            <h1 class="catalog-title">Профиль</h1>
+        </div>
+    </header>
+
+    <div class="app-toast-marker" th:if="${success}" data-toast-message th:text="${success}">Saved</div>
+
+    <div class="profile-main-grid">
+        <section class="panel profile-account-card">
+            <div class="profile-account-card__top">
+                <div class="field-label profile-account-card__label">Аккаунт</div>
+                <button class="profile-settings-toggle" type="button" aria-label="Настройки профиля" data-profile-settings-open>
+                    <img src="/assets/icons/settings.png" alt="" class="profile-settings-toggle__icon" aria-hidden="true"/>
+                </button>
+            </div>
+
+            <div class="profile-account-card__body">
+                <div class="profile-account-card__name" data-profile-name-display th:text="${profileName}">Имя</div>
+                <div class="profile-account-card__email" th:text="${profileEmail}">email</div>
+            </div>
+
+            <div class="profile-account-card__footer">
+                <button class="btn btn-outline-light profile-logout-btn" type="button" data-logout>Выйти из аккаунта</button>
+            </div>
+        </section>
+
+        <section class="panel profile-activity-card">
+            <div class="profile-activity-card__head">
+                <div class="field-label profile-activity-card__label">Активность</div>
+            </div>
+
+            <div class="profile-activity-card__body">
+                <div class="profile-ring-panel">
+                    <div class="profile-ring-wrap"
+                         data-profile-ring
+                         th:attr="data-read-count=${readCount}, data-planned-count=${plannedCount}, data-total-count=${totalCount}">
+                        <div class="profile-ring"></div>
+                        <div class="profile-ring-center">
+                            <div class="profile-ring-number" th:text="${totalCount}">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-books-mini">
+                    <div class="profile-stat-stack">
+                        <div class="profile-stat-card profile-stat-card--read">
+                            <div class="profile-stat-card__title">Прочитано</div>
+                            <div class="profile-stat-card__value" th:text="${readCount}">0</div>
+                        </div>
+                        <div class="profile-stat-card profile-stat-card--planned">
+                            <div class="profile-stat-card__title">В планах</div>
+                            <div class="profile-stat-card__value" th:text="${plannedCount}">0</div>
+                        </div>
+                    </div>
+
+                    <a class="btn btn-primary profile-books-all-btn" href="/profile/books">Посмотреть все</a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <section class="profile-lower-grid">
+        <section class="panel profile-reviews-card">
+            <div class="profile-section-head">
+                <h2 class="section-title">Мои отзывы</h2>
+                <span class="pill-badge pill-badge--compact" th:text="${myReviews != null ? myReviews.size() : 0}">0</span>
+            </div>
+
+            <div class="profile-review-list" th:if="${myReviews != null and !#lists.isEmpty(myReviews)}">
+                <a class="profile-review-row" th:each="review : ${myReviews}" th:href="@{/books/{id}(id=${review.book.id})}">
+                    <div class="profile-review-row__main">
+                        <div class="item-title clamp-1" th:text="${review.book.title}">Title</div>
+                        <div class="item-subtitle clamp-1" th:text="${review.book.author}">Author</div>
+                    </div>
+                    <div class="profile-review-row__side">
+                        <span class="rating-inline rating-inline--sm rating-inline--review"
+                              th:with="rating=${review.rating}">
+                            <span class="rating-inline__value" th:text="${@uiFormat.reviewRatingLabel(rating)}">5</span>
+                            <span class="rating-stars" aria-hidden="true">
+                                <th:block th:each="starIndex : ${#numbers.sequence(1,5)}">
+                                    <span class="rating-stars__star"
+                                          th:style="|--star-fill:${@uiFormat.starFillPercent(rating, starIndex)}%|">
+                                        <span class="rating-stars__base">★</span>
+                                        <span class="rating-stars__fill">★</span>
+                                    </span>
+                                </th:block>
+                            </span>
+                        </span>
+                    </div>
+                </a>
+            </div>
+
+            <div class="empty-state empty-state--tight profile-reviews-empty-state" th:if="${myReviews == null or #lists.isEmpty(myReviews)}">
+                <img src="/assets/icons/noreviews.png" class="empty-state__image empty-state__image--compact empty-state__image--float" alt="" aria-hidden="true"/>
+                <div class="empty-state__caption">Отзывов пока нет</div>
+            </div>
+        </section>
+
+        <section class="panel profile-suggestion-card">
+            <h2 class="section-title">Предложить книгу</h2>
+            <form th:action="@{/profile/suggest}" method="post" th:object="${suggestionForm}" class="form-grid form-grid--suggestion profile-suggestion-form" data-suggestion-form>
+                <div class="form-grid__cell">
+                    <label class="field-label" for="suggestion-title">Название</label>
+                    <input id="suggestion-title"
+                           class="form-control"
+                           th:field="*{title}"
+                           placeholder=""
+                           autocomplete="off"
+                           autocapitalize="off"
+                           spellcheck="false"
+                           required/>
+                </div>
+                <div class="form-grid__cell">
+                    <label class="field-label" for="suggestion-author">Автор</label>
+                    <input id="suggestion-author"
+                           class="form-control"
+                           th:field="*{author}"
+                           placeholder=""
+                           autocomplete="off"
+                           autocapitalize="off"
+                           spellcheck="false"
+                           required/>
+                </div>
+                <div class="form-grid__cell form-grid__cell--full profile-suggestion-form__publish-row">
+                    <div class="profile-suggestion-form__year-wrap">
+                        <label class="field-label" for="suggestion-year">Год</label>
+                        <input id="suggestion-year"
+                               class="form-control"
+                               th:field="*{publicationYear}"
+                               type="text"
+                               inputmode="numeric"
+                               pattern="[0-9]*"
+                               placeholder="2024"
+                               required/>
+                    </div>
+                    <button class="btn btn-outline-light profile-suggestion-form__submit" type="submit" data-suggestion-submit disabled>Отправить</button>
+                </div>
+            </form>
+        </section>
+    </section>
+</main>
+
+<div class="catalog-sort-modal profile-settings-modal" hidden data-profile-settings-modal>
+    <div class="catalog-sort-modal__backdrop" data-profile-settings-close></div>
+    <section class="catalog-sort-sheet profile-settings-sheet" role="dialog" aria-modal="true" aria-labelledby="profile-settings-title">
+        <div class="catalog-sort-sheet__header">
+            <h2 class="catalog-sort-sheet__title" id="profile-settings-title">Настройки профиля</h2>
+            <button class="catalog-sort-sheet__close" type="button" aria-label="Закрыть" data-profile-settings-close>✕</button>
+        </div>
+        <div class="profile-settings-field">
+            <label class="field-label" for="profile-display-name">Имя</label>
+            <input id="profile-display-name"
+                   class="form-control"
+                   name="displayName"
+                   th:value="${profileName}"
+                   placeholder="Введите имя"
+                   autocomplete="off"
+                   data-profile-display-name-input/>
+        </div>
+    </section>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script type="module" src="/assets/js/cursor.js"></script>
+<script type="module" src="/assets/js/auth.js"></script>
+</body>
+</html>
