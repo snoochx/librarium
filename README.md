@@ -460,7 +460,7 @@ src/main/java/ru/librarium
 
 ---
 
-## Демонстрация работы
+## Демонстрация работы (Ссылка на скачивание)
 
 [![Librarium Demo](docs/images/demo-preview.png)](https://github.com/snoochx/librarium/releases/download/release-1.0/video.mp4)
 
